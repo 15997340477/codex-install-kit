@@ -4,7 +4,6 @@ param(
 
     [string]$BaseUrl = "https://nexus.1982video.cn",
     [string]$Model = "gpt-5.5",
-    [switch]$AllowCDrive,
     [switch]$SkipWingetInstall
 )
 
@@ -16,36 +15,13 @@ function Write-Step {
     Write-Host "==> $Message" -ForegroundColor Cyan
 }
 
-function Get-InstallDrive {
-    param([switch]$AllowC)
-
-    $drives = Get-PSDrive -PSProvider FileSystem |
-        Where-Object { $_.Free -gt 1GB } |
-        Sort-Object Free -Descending
-
-    if (-not $AllowC) {
-        $drives = $drives | Where-Object { $_.Name -ne "C" }
-    }
-
-    $drive = $drives | Select-Object -First 1
-    if (-not $drive) {
-        if ($AllowC) {
-            throw "No usable drive was found."
-        }
-        throw "No non-C drive with at least 1 GB free was found. Use another drive, or rerun with -AllowCDrive."
-    }
-
-    return $drive.Root
-}
-
 Write-Host "Codex online installer" -ForegroundColor Green
 Write-Host "Package URL: $PackageUrl"
 Write-Host "Proxy base URL: $BaseUrl"
 Write-Host "Model: $Model"
 
-Write-Step "Choosing a non-C work directory"
-$root = Get-InstallDrive -AllowC:$AllowCDrive
-$workRoot = Join-Path $root "CodexInstallKit"
+Write-Step "Choosing a work directory"
+$workRoot = Join-Path $env:TEMP "CodexInstallKit"
 $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
 $downloadPath = Join-Path $workRoot "codex-install-kit-$stamp.zip"
 $extractPath = Join-Path $workRoot "codex-install-kit-$stamp"
