@@ -3,7 +3,8 @@ param(
     [string]$PackageUrl,
 
     [string]$BaseUrl = "https://nexus.1982video.cn",
-    [string]$Model = "gpt-5.5",
+    [switch]$SkipStoreInstall,
+    [switch]$InstallCliTools,
     [switch]$SkipWingetInstall
 )
 
@@ -15,10 +16,10 @@ function Write-Step {
     Write-Host "==> $Message" -ForegroundColor Cyan
 }
 
-Write-Host "Codex online installer" -ForegroundColor Green
+Write-Host "Codex desktop online config installer" -ForegroundColor Green
 Write-Host "Package URL: $PackageUrl"
 Write-Host "Proxy base URL: $BaseUrl"
-Write-Host "Model: $Model"
+Write-Host "Model: not preconfigured"
 
 Write-Step "Choosing a work directory"
 $workRoot = Join-Path $env:TEMP "CodexInstallKit"
@@ -41,8 +42,12 @@ if (-not $installer) {
     throw "Install-Codex-For-Friend.ps1 was not found in the install kit."
 }
 
-Write-Step "Running local installer"
-& $installer.FullName -BaseUrl $BaseUrl -Model $Model -SkipWingetInstall:$SkipWingetInstall
+Write-Step "Running desktop config installer"
+if ($InstallCliTools -and -not $SkipWingetInstall) {
+    & $installer.FullName -BaseUrl $BaseUrl -InstallCliTools -SkipStoreInstall:$SkipStoreInstall
+} else {
+    & $installer.FullName -BaseUrl $BaseUrl -SkipWingetInstall -SkipStoreInstall:$SkipStoreInstall
+}
 
-Write-Step "Online install finished"
+Write-Step "Online config finished"
 Write-Host "Downloaded files are kept in: $workRoot"
